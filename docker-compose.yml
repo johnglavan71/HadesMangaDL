@@ -1,0 +1,112 @@
+version: '3.8'
+
+networks:
+  manga_net:
+    driver: bridge
+
+services:
+  #You can swap this out with any VPN service but if you update the container name you will have to update all network_mode: sections
+  nordvpn:
+    image: "ghcr.io/bubuntux/nordlynx:latest"
+    container_name: manga_nordvpn
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    environment:
+      - PRIVATE_KEY=${PRIVATE_KEY}
+      - CONNECT=canada
+      - TZ=${TZ}
+      - NET_LOCAL=192.168.69.0/24,172.18.0.0/16 #make sure you change the first ip range to your ip range
+      - RECONNECT=30
+      - DNS_SERVERS=1.1.1.1,8.8.8.8
+    ports:
+      - "8191:8191" #For Flaresolverr
+      - "8000:8000" #For Webhost
+      - "6379:6379" #For Redis
+    restart: unless-stopped
+    sysctls:
+      net.ipv6.conf.all.disable_ipv6: 1
+    networks:
+      - manga_net
+
+  redis:
+    image: "redis:7-alpine"
+    container_name: manga_redis
+    volumes:
+      # Update this to Make sure that Publications are saved on reboot
+      - ./redis-data:/data
+    restart: unless-stopped
+    network_mode: "service:nordvpn"
+
+  api:
+    image: "hades715/hades-dl-api:latest"
+    volumes:
+      - ./downloads:/downloads #Set your Download location here
+      - ./app:/app/app #This can probably be ignored
+    command: uvicorn app.api:app --host 0.0.0.0 --port 8000 --reload --reload-dir /app/app
+    network_mode: "service:nordvpn"
+    depends_on:
+      - redis
+      - nordvpn
+    environment:
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - WEBHOOK_URL=${WEBHOOK_URL}
+      - PUBLIC_URL_BASE=${PUBLIC_URL_BASE}
+
+  worker:
+    image: "hades715/hades-dl-worker:latest"
+    volumes:
+      - ./downloads:/downloads #Set download location here
+      - ./config:/config #This is where your gallery-dl Config file is stored
+      - ./app:/app/app #this can probably be ignored
+    command: celery -A app.worker.celery_app worker --loglevel=info -c 4
+    network_mode: "service:nordvpn"
+    depends_on:
+      - redis
+      - nordvpn
+    environment:
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - WEBHOOK_URL=${WEBHOOK_URL}
+      - PUBLIC_URL_BASE=${PUBLIC_URL_BASE}
+
+  celery-beat:
+    image: "hades715/hades-dl-celery-beat:latest"
+    volumes:
+      - ./downloads:/downloads #Set download location here
+      - ./config:/config #This is where your gallery-dl Config file is stored
+      - ./app:/app/app #this can probably be ignored
+      - ./celerybeat-data:/var/lib/celerybeat #Celery beat data needs to be stored to ensure that updates happen even after restart
+    command: celery -A app.worker.celery_app beat --loglevel=info
+    network_mode: "service:nordvpn"
+    depends_on:
+      - redis
+    environment:
+      - CELERY_BROKER_URL=redis://localhost:6379/0
+      - CELERY_RESULT_BACKEND=redis://localhost:6379/0
+      - TZ=${TZ}
+      - REDIS_HOST=localhost
+      - REDIS_PORT=6379
+
+  flaresolverr:
+    image: "ghcr.io/flaresolverr/flaresolverr:latest"
+    container_name: manga_flaresolverr
+    environment:
+      - LOG_LEVEL=info
+      - TZ=${TZ}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+    network_mode: "service:nordvpn"
+    depends_on:
+      - redis
+      - nordvpn
+
+volumes:
+  downloads:
+  redis-data:
+  celerybeat-data:
