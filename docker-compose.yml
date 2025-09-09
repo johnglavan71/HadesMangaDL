@@ -42,7 +42,6 @@ services:
     image: "hades715/hades-dl-api:latest"
     volumes:
       - ./downloads:/downloads #Set your Download location here
-      - ./app:/app/app #This can probably be ignored
     command: uvicorn app.api:app --host 0.0.0.0 --port 8000 --reload --reload-dir /app/app
     network_mode: "service:nordvpn"
     depends_on:
@@ -61,7 +60,6 @@ services:
     volumes:
       - ./downloads:/downloads #Set download location here
       - ./config:/config #This is where your gallery-dl Config file is stored
-      - ./app:/app/app #this can probably be ignored
     command: celery -A app.worker.celery_app worker --loglevel=info -c 4
     network_mode: "service:nordvpn"
     depends_on:
@@ -80,7 +78,6 @@ services:
     volumes:
       - ./downloads:/downloads #Set download location here
       - ./config:/config #This is where your gallery-dl Config file is stored
-      - ./app:/app/app #this can probably be ignored
       - ./celerybeat-data:/var/lib/celerybeat #Celery beat data needs to be stored to ensure that updates happen even after restart
     command: celery -A app.worker.celery_app beat --loglevel=info
     network_mode: "service:nordvpn"
