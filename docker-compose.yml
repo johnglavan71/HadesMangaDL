@@ -16,7 +16,7 @@ services:
       - PRIVATE_KEY=${PRIVATE_KEY}
       - CONNECT=canada
       - TZ=${TZ}
-      - NET_LOCAL=192.168.69.0/24,172.18.0.0/16 #make sure you change the first ip range to your ip range
+      - NET_LOCAL=x.x.x.x/24,172.18.0.0/16 #make sure you change the first ip range to your ip range
       - RECONNECT=30
       - DNS_SERVERS=1.1.1.1,8.8.8.8
     ports:
