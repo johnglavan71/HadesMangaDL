@@ -1,0 +1,88 @@
+[
+  {
+    "name": "WeebCentral",
+    "search_url_template": "https://weebcentral.com/search?text={query}&sort=Best+Match&order=Descending&official=Any&anime=Any&adult=Any&display_mode=Full+Display",
+    "selectors": {
+      "results_container": "article.bg-base-300",
+      "result_title": "a.line-clamp-1",
+      "result_url": "a.line-clamp-1",
+      "result_cover": "picture img",
+      "result_author": "div:has(> strong:-soup-contains(Author)) > span > a",
+      "result_status": "div:has(> strong:-soup-contains(Status)) > span",
+      "result_year": "div:has(> strong:-soup-contains(Year)) > span",
+      "result_tags": "div:has(> strong:-soup-contains(Tag))"
+    },
+    "series_selectors": {
+      "cover_url": "section.flex.items-center.justify-center picture img",
+      "title": "h1.md\\:hidden.text-2xl.font-bold.text-center",
+      "publisher": "ul li strong:-soup-contains(\"Author(s):\") + span a",
+      "status": "ul li strong:-soup-contains(\"Status:\") + a",
+      "year": "ul li strong:-soup-contains(\"Released:\") + span",
+      "tags": "ul li strong:-soup-contains(\"Tags(s):\") + span a",
+      "description": "section p"
+    }
+  },
+  {
+    "name": "Bato.to",
+    "search_url_template": "https://bato.to/search?word={query}",
+    "selectors": {
+      "results_container": "div.col.item",
+      "result_title": "a.item-title",
+      "result_url": "a.item-title",
+      "result_cover": "a.item-cover img",
+      "result_author": "div.item-alias",
+      "result_tags": "div.item-genre"
+    },
+    "series_selectors": {
+      "cover_url": "div.attr-cover img",
+      "title": "meta[property=\"og:title\"]",
+      "publisher": "div.attr-item b:-soup-contains(\"Authors:\") + span a",
+      "status": "div.attr-item b:-soup-contains(\"Upload status:\") + span",
+      "year": "div.attr-item b:-soup-contains(\"Year of Release:\") + span",
+      "tags": "div.attr-item b:-soup-contains(\"Genres:\") + span span",
+      "description": "div.limit-html"
+    }
+  },
+  {
+    "name": "Komikcast",
+    "search_url_template": "https://komikcast.li/?s={query}",
+    "selectors": {
+      "results_container": "div.list-update_item",
+      "result_title": "h3.title",
+      "result_url": "a",
+      "result_cover": "img.ts-post-image",
+      "result_status": "span.status"
+    },
+    "series_selectors": {
+      "cover_url": "div.komik_info-cover-image img",
+      "title": "h1.komik_info-content-body-title",
+      "publisher": "span.komik_info-content-native",
+      "status": "div.komik_info-content-meta span:-soup-contains(\"Status:\")",
+      "year": "div.komik_info-content-meta span:-soup-contains(\"Released:\")",
+      "tags": "span.komik_info-content-genre a",
+      "description": "div.komik_info-description-sinopsis p"
+    }
+  },
+  {
+    "name": "Mangadex",
+    "search_url_template": "https://mangadex.org/titles?q={query}",
+    "selectors": {
+      "results_container": "div.manga-card",
+      "result_title": "a.title > span",
+      "result_url": "a.title",
+      "result_cover": "div.manga-card-cover img",
+      "result_author": "span.author",
+      "result_status": "div.status .tag span",
+      "result_tags": "div.tags-row a"
+    },
+    "series_selectors": {
+      "cover_url": "div.banner-image",
+      "title": "p[style*=\"font-size: 4.5rem\"]",
+      "publisher": "div.flex-row.gap-2 div",
+      "status": "span.tag.dot span",
+      "year": "span.tag.dot span",
+      "tags": "div.tags-row a",
+      "description": "div.md-md-container div p"
+    }
+  }
+]

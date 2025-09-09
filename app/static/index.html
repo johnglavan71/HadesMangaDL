@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hades-DL</title>
+	<link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="p-6">
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-4xl font-bold text-white">Hades-DL</h1>
+        <div class="relative">
+            <select id="sort-select" class="rounded-md bg-gray-700 border-gray-600 text-white p-2 appearance-none pr-8 cursor-pointer">
+                <option value="name-asc">Sort by Name (A-Z)</option>
+                <option value="name-desc">Sort by Name (Z-A)</option>
+                <option value="site-asc">Sort by Site (A-Z)</option>
+                <option value="site-desc">Sort by Site (Z-A)</option>
+            </select>
+        </div>
+    </div>
+    <div id="cards-container" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8 gap-2.5">
+        <div id="add-url-card" class="card add-card rounded-lg shadow-md fixed-card-size" onclick="openAddUrlModal()">+</div>
+    </div>
+
+    <div id="modal-overlay" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden modal-overlay">
+        <div id="modal-content" class="modal-content rounded-lg shadow-xl p-6 w-11/12 md:w-3/4 lg:w-1/2 relative">
+            <button class="absolute top-4 right-4 text-gray-400 hover:text-white text-2xl" onclick="closeModal()">&times;</button>
+            
+            <div id="initial-choice-view">
+                <h2 class="text-2xl font-bold mb-6 text-white text-center">Add a New Series</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <button id="show-url-form-btn" class="py-3 px-4 rounded-md shadow-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">Add by URL</button>
+                    <button id="show-search-view-btn" class="py-3 px-4 rounded-md shadow-sm font-medium text-white bg-blue-600 hover:bg-blue-700">Search</button>
+                    <button id="show-bulk-import-btn" class="py-3 px-4 rounded-md shadow-sm font-medium text-white bg-teal-600 hover:bg-teal-700">Bulk Import</button>
+                </div>
+            </div>
+            
+            <div id="add-url-form" class="hidden space-y-4">
+                <h2 class="text-2xl font-bold mb-4 text-white">Add New URL to Watch</h2>
+                <button class="text-gray-400 hover:text-white mb-4" onclick="showInitialChoice()">&larr; Back</button>
+                <form onsubmit="handleAddUrl(event)">
+                    <div><label for="new-url" class="block text-sm font-medium text-gray-300">URL:</label><input type="url" id="new-url" name="url" required class="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white p-2"></div>
+                    <div><label for="new-library" class="block text-sm font-medium text-gray-300">Library:</label><select id="new-library" name="library" required class="mt-1 block w-full rounded-md bg-gray-700 border-gray-700 text-white p-2"><option value="manga">Manga</option><option value="comics">Comics</option><option value="artbooks">Artbooks</option></select></div>
+                    <div>
+                        <label for="new-frequency" class="block text-sm font-medium text-gray-300">Update Frequency:</label>
+                        <select id="new-frequency" name="frequency" required class="mt-1 block w-full rounded-md bg-gray-700 border-gray-700 text-white p-2">
+                            <option value="hourly">Hourly</option>
+                            <option value="half_daily">12 Hours</option>
+                            <option value="daily" selected>Daily</option>
+                            <option value="weekly">Weekly</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="w-full mt-4 py-2 px-4 rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700">Add & Download</button>
+                </form>
+            </div>
+
+            <div id="bulk-import-view" class="hidden space-y-4">
+                <h2 class="text-2xl font-bold mb-4 text-white">Bulk Import from CSV</h2>
+                <button class="text-gray-400 hover:text-white mb-4" onclick="showInitialChoice()">&larr; Back</button>
+                <p class="text-sm text-gray-400">Upload a .csv file with one series URL per line.</p>
+                <form id="bulk-import-form">
+                    <div>
+                        <label for="csv-file" class="block text-sm font-medium text-gray-300">CSV File:</label>
+                        <input type="file" id="csv-file" name="csv-file" required accept=".csv" class="mt-1 block w-full text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                    </div>
+                    <div>
+                        <label for="bulk-library" class="block text-sm font-medium text-gray-300">Library:</label>
+                        <select id="bulk-library" name="library" required class="mt-1 block w-full rounded-md bg-gray-700 border-gray-700 text-white p-2">
+                            <option value="manga">Manga</option>
+                            <option value="comics">Comics</option>
+                            <option value="artbooks">Artbooks</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="bulk-frequency" class="block text-sm font-medium text-gray-300">Update Frequency:</label>
+                        <select id="bulk-frequency" name="frequency" required class="mt-1 block w-full rounded-md bg-gray-700 border-gray-700 text-white p-2">
+                            <option value="hourly">Hourly</option>
+                            <option value="half_daily">12 Hours</option>
+                            <option value="daily" selected>Daily</option>
+                            <option value="weekly">Weekly</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="w-full mt-4 py-2 px-4 rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700">Start Import</button>
+                </form>
+            </div>
+            
+            <div id="search-view" class="hidden">
+                <button class="text-gray-400 hover:text-white mb-4" onclick="showInitialChoice()">&larr; Back</button>
+                <form id="search-form" class="flex items-center space-x-2 mb-4">
+                    <select id="site-filter-select" class="rounded-md bg-gray-600 border-gray-600 text-white p-2 appearance-none cursor-pointer">
+                        </select>
+                    <select id="limit-select" class="rounded-md bg-gray-600 border-gray-600 text-white p-2 appearance-none cursor-pointer">
+                        <option value="5">5</option>
+                        <option value="10" selected>10</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                    </select>
+                    <input type="search" id="search-term" placeholder="Search for a series..." required class="flex-grow block w-full rounded-md bg-gray-700 text-white p-2">
+                    <button type="submit" class="py-2 px-4 rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">Search</button>
+                </form>
+                <div id="search-results-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-h-[60vh] overflow-y-auto"></div>
+            </div>
+            
+            <div id="series-details" class="hidden">
+                <button id="details-back-button" class="text-gray-400 hover:text-white mb-4">&larr; Back</button>
+                <h2 id="detail-title" class="text-3xl font-bold mb-2 text-white"></h2>
+                <p class="text-gray-400 mb-4">Sources:</p>
+                <ul id="source-urls-list" class="list-disc list-inside mb-4 ml-4"></ul>
+                
+                <div id="add-source-container" class="space-y-2 mt-4">
+                    <form id="add-source-form" class="flex items-center space-x-2">
+                        <input type="url" id="new-source-url-input" placeholder="Add another source URL..." required class="block w-full rounded-md bg-gray-700 text-white p-2">
+                        <button type="submit" class="py-2 px-4 rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">Add Source</button>
+                    </form>
+                </div>
+                
+                <div class="mb-4"><h3 class="text-xl font-semibold text-white">Metadata:</h3><p><strong class="text-gray-300">Publisher:</strong> <span id="meta-publisher"></span></p><p><strong class="text-gray-300">Status:</strong> <span id="meta-status"></span></p><p><strong class="text-gray-300">Year:</strong> <span id="meta-year"></span></p><p><strong class="text-gray-300">Next Update Check:</strong> <span id="meta-next-update"></span></p><p><strong class="text-gray-300">Tags:</strong> <span id="meta-tags"></span></p><p><strong class="text-gray-300">Description:</strong> <span id="meta-description" class="block mt-2 text-gray-300 text-sm"></span></p></div>
+                
+                <div id="missing-chapters-container" class="my-4 hidden">
+                    <h3 class="text-xl font-semibold text-white">Missing Chapters:</h3>
+                    <ul id="missing-chapters-list" class="list-disc list-inside mt-2 text-gray-400 text-sm max-h-24 overflow-y-auto">
+                        </ul>
+                </div>
+
+                <div class="my-4">
+                    <label for="monitor-frequency" class="block text-sm font-medium text-gray-300">Update Frequency:</label>
+                    <select id="monitor-frequency" name="frequency" required class="mt-1 block w-full rounded-md bg-gray-700 border-gray-700 text-white p-2">
+                        <option value="hourly">Hourly</option>
+                        <option value="half_daily">12 Hours</option>
+                        <option value="daily" selected>Daily</option>
+                        <option value="weekly">Weekly</option>
+                    </select>
+                </div>
+
+                <div id="action-buttons" class="flex space-x-4 mt-6"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="url-selection-overlay" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden modal-overlay">
+        <div id="url-selection-modal" class="modal-content rounded-lg shadow-xl p-6 w-11/I'm still getting this error:
+Uncaught TypeError: can't access property "addEventListener", statusButton is null
+    <anonymous> http://localhost:8000/static/script.js:658
+TypeError: can't access property "then", a.default.detectStore(...) is undefined1/12 md:w-3/4 lg:w-1/2 relative">
+            <h2 class="text-2xl font-bold mb-6 text-white text-center">Select a Source</h2>
+            <div id="url-selection-list" class="space-y-2 max-h-[60vh] overflow-y-auto">
+                </div>
+            <button class="mt-6 w-full py-2 px-4 rounded-md shadow-sm text-white bg-gray-600 hover:bg-gray-700" onclick="closeUrlSelectionModal()">Cancel</button>
+        </div>
+    </div>
+    
+    <script src="/static/script.js"></script>
+
+    <button id="status-button" class="fixed bottom-6 left-6 bg-indigo-600 text-white py-2 px-4 rounded-lg shadow-lg hover:bg-indigo-700 z-40">
+        Jobs Status
+    </button>
+
+    <div id="status-panel" class="hidden fixed bottom-20 left-6 bg-gray-800 text-white rounded-lg shadow-lg p-4 w-80 z-40 border border-gray-600">
+        <div class="flex justify-between items-center mb-2">
+            <h3 class="font-bold text-lg">Current Activity</h3>
+            <button id="status-close-button" class="text-gray-400 hover:text-white">&times;</button>
+        </div>
+        
+        <h4 class="font-semibold text-gray-300 mt-4 border-b border-gray-600 pb-1">Currently Processing</h4>
+        <ul id="active-jobs-list" class="text-sm space-y-1 mt-2 max-h-32 overflow-y-auto">
+            </ul>
+
+        <h4 class="font-semibold text-gray-300 mt-4 border-b border-gray-600 pb-1">Scheduled in Queue</h4>
+        <ul id="scheduled-jobs-list" class="text-sm space-y-1 mt-2 max-h-32 overflow-y-auto">
+            </ul>
+    </div>
+
+</body>
+</html>
